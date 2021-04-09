@@ -191,7 +191,6 @@ contract WaultWbnbVenusStrategy is Ownable {
 
 
     function harvest() public returns (uint harvesterRewarded) {
-      // require(msg.sender == strategist || msg.sender == governance, "!authorized");
       require(msg.sender == tx.origin, "not eoa");
 
       _claimXvs();
