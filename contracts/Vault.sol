@@ -32,7 +32,7 @@ contract WaultWbnbVault is ERC20, Ownable {
     // The token the vault accepts and looks to maximize.
     IERC20 public token;
     // The minimum time it has to pass before a strat candidate can be approved.
-    uint256 public approvalDelay;
+    uint256 public approvalDelay = 0;
 
     event NewStratCandidate(address implementation);
     event UpgradeStrat(address implementation);
@@ -43,17 +43,14 @@ contract WaultWbnbVault is ERC20, Ownable {
      * This token is minted when someone does a deposit. It is burned in order
      * to withdraw the corresponding portion of the underlying assets.
      * @param _token the token to maximize.
-     * @param _approvalDelay the delay before a new strat can be approved.
      */
     constructor (
-        address _token, 
-        uint256 _approvalDelay
+        address _token
     ) ERC20(
         string(abi.encodePacked("Wault ", ERC20(_token).name())),
         string(abi.encodePacked("wault", ERC20(_token).symbol()))
     ) {
         token = IERC20(_token);
-        approvalDelay = _approvalDelay;
     }
 
     function setStrategy(address _strategy) external onlyOwner {

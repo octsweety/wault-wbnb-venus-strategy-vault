@@ -1,8 +1,8 @@
 import * as hre from 'hardhat';
-import { WaultEllipsisVault } from '../types/ethers-contracts/WaultEllipsisVault';
-import { WaultEllipsisVault__factory } from '../types/ethers-contracts/factories/WaultEllipsisVault__factory';
-import { WaultEllipsisStrategy } from '../types/ethers-contracts/WaultEllipsisStrategy';
-import { WaultEllipsisStrategy__factory } from '../types/ethers-contracts/factories/WaultEllipsisStrategy__factory';
+import { WaultWbnbVault } from '../types/ethers-contracts/WaultWbnbVault';
+import { WaultWbnbVault__factory } from '../types/ethers-contracts/factories/WaultWbnbVault__factory';
+import { WaultWbnbVenusStrategy } from '../types/ethers-contracts/WaultWbnbVenusStrategy';
+import { WaultWbnbVenusStrategy__factory } from '../types/ethers-contracts/factories/WaultWbnbVenusStrategy__factory';
 import { ERC20__factory } from '../types/ethers-contracts/factories/ERC20__factory';
 import { assert } from 'sinon';
 
@@ -37,22 +37,25 @@ async function deploy() {
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const mainnet = process.env.NETWORK == "mainnet" ? true : false;
-    const eps3Address = mainnet ? process.env.EPS3_MAIN : process.env.EPS3_TEST
+    const wbnbAddress = mainnet ? process.env.WBNB_MAIN : process.env.WBNB_TEST
     const vaultAddress = mainnet ? process.env.VAULT_MAIN : process.env.VAULT_TEST
     const strategyAddress = mainnet ? process.env.STRATEGY_MAIN : process.env.STRATEGY_TEST
 
-    const vaultFactory: WaultEllipsisVault__factory = new WaultEllipsisVault__factory(deployer);
-    const vault: WaultEllipsisVault = await vaultFactory.deploy(eps3Address, 0);
-    const strategyFactory: WaultEllipsisStrategy__factory = new WaultEllipsisStrategy__factory(deployer);
-    const strategy: WaultEllipsisStrategy = await strategyFactory.deploy(vault.address);
-    // const strategy: WaultEllipsisStrategy = await strategyFactory.deploy(vaultAddress);
+    const vaultFactory: WaultWbnbVault__factory = new WaultWbnbVault__factory(deployer);
+    let vault: WaultWbnbVault = await vaultFactory.attach(vaultAddress).connect(deployer);
+    if ("redeploy" && false) {
+        vault = await vaultFactory.deploy(wbnbAddress);
+    }
     console.log(`Deployed Vault... (${vault.address})`);
+    const strategyFactory: WaultWbnbVenusStrategy__factory = new WaultWbnbVenusStrategy__factory(deployer);
+    let strategy: WaultWbnbVenusStrategy = strategyFactory.attach(strategyAddress).connect(deployer);
+    if ("redeploy" && true) {
+        strategy = await strategyFactory.deploy(vault.address);
+    }
     console.log(`Deployed Strategy... (${strategy.address})`);
 
     console.log("Setting strategy address...");
     await vault.setStrategy(strategy.address);
-    // const vault = await vaultFactory.attach(vaultAddress).connect(deployer);
-    // await vault.setStrategy(strategyAddress);
     
     const afterBalance = await deployer.getBalance();
     console.log(

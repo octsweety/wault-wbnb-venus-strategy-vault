@@ -1,8 +1,8 @@
 import * as hre from 'hardhat';
-import { WaultEllipsisVault } from '../types/ethers-contracts/WaultEllipsisVault';
-import { WaultEllipsisVault__factory } from '../types/ethers-contracts/factories/WaultEllipsisVault__factory';
-import { WaultEllipsisStrategy } from '../types/ethers-contracts/WaultEllipsisStrategy';
-import { WaultEllipsisStrategy__factory } from '../types/ethers-contracts/factories/WaultEllipsisStrategy__factory';
+import { WaultWbnbVault } from '../types/ethers-contracts/WaultWbnbVault';
+import { WaultWbnbVault__factory } from '../types/ethers-contracts/factories/WaultWbnbVault__factory';
+import { WaultWbnbVenusStrategy } from '../types/ethers-contracts/WaultWbnbVenusStrategy';
+import { WaultWbnbVenusStrategy__factory } from '../types/ethers-contracts/factories/WaultWbnbVenusStrategy__factory';
 import { ERC20__factory } from '../types/ethers-contracts/factories/ERC20__factory';
 import { assert } from 'sinon';
 
@@ -42,45 +42,37 @@ async function deploy() {
 
     const mainnet = process.env.NETWORK == "mainnet" ? true : false;
     const url = mainnet ? process.env.URL_MAIN : process.env.URL_TEST;
-    const eps3Address = mainnet ? process.env.EPS3_MAIN : process.env.EPS3_TEST
-    const epsAddress = mainnet ? process.env.EPS_MAIN : process.env.EPS_TEST
     const wbnbAddress = mainnet ? process.env.WBNB_MAIN : process.env.WBNB_TEST
-    const busdAddress = mainnet ? process.env.BUSD_MAIN : process.env.BUSD_TEST
     const vaultAddress = mainnet ? process.env.VAULT_MAIN : process.env.VAULT_TEST
     const strategyAddress = mainnet ? process.env.STRATEGY_MAIN : process.env.STRATEGY_TEST
 
-    const vaultFactory: WaultEllipsisVault__factory = new WaultEllipsisVault__factory(deployer);
-    const vault: WaultEllipsisVault = await vaultFactory.attach(vaultAddress).connect(deployer);
-    const strategyFactory: WaultEllipsisStrategy__factory = new WaultEllipsisStrategy__factory(deployer);
-    const strategy: WaultEllipsisStrategy = await strategyFactory.attach(strategyAddress).connect(deployer);
+    const vaultFactory: WaultWbnbVault__factory = new WaultWbnbVault__factory(deployer);
+    const vault: WaultWbnbVault = await vaultFactory.attach(vaultAddress).connect(deployer);
+    const strategyFactory: WaultWbnbVenusStrategy__factory = new WaultWbnbVenusStrategy__factory(deployer);
+    const strategy: WaultWbnbVenusStrategy = await strategyFactory.attach(strategyAddress).connect(deployer);
     console.log(`Deployed Vault... (${vault.address})`);
     console.log(`Deployed Strategy... (${strategy.address})`);
 
     const erc20Factory = new ERC20__factory(deployer);
-    const eps3 = await erc20Factory.attach(eps3Address).connect(deployer);
-    const eps = await erc20Factory.attach(epsAddress).connect(deployer);
-    const busd = await erc20Factory.attach(busdAddress).connect(deployer);
     const wbnb = await erc20Factory.attach(wbnbAddress).connect(deployer);
-
     const block = await ethers.getDefaultProvider(url).getBlockNumber();
     console.log("Block number: ", block);
-    const busdBalance = await busd.balanceOf(strategy.address);
-    console.log("busdBalance: ", toEther(busdBalance));
     const wbnbBalance = await wbnb.balanceOf(strategy.address);
     console.log("wbnbBalance: ", toEther(wbnbBalance));
-    const epsBalance = await eps.balanceOf(strategy.address);
-    console.log("epsBalance: ", toEther(epsBalance));
+
+    console.log("supplyRatePerBlock: ", (await strategy.supplyRatePerBlock()).toString());
+    console.log("borrowRatePerBlock: ", (await strategy.borrowRatePerBlock()).toString());
+    // console.log("supplyRewardRatePerBlock:", (await strategy.supplyRewardRatePerBlock()).toString());
+    // console.log("borrowRewardRatePerBlock:", (await strategy.borrowRewardRatePerBlock()).toString());
+    // console.log("currentRewardRate:", (await strategy.currentRewardRate()).toString());
+    // console.log("priceOfVenus:", (await strategy.priceOfVenus()).toString());
+    
     const totalSupply = await vault.totalSupply();
     console.log("totalSupply: ", toEther(totalSupply));
     const balance = await vault.balance();
     console.log("balance: ", toEther(balance));
     const claimed = balance.sub(totalSupply);
     console.log("claimed: ", toEther(claimed));
-    const claimable = await strategy.claimableReward();
-    console.log("cliamable: ", toEther(claimable));
-    const harvestable = await strategy.harvestableReward();
-    console.log("harvestable amount: ", harvestable.amount.toString());
-    console.log("harvestable penalties: ", harvestable.penalties.toString());
     const pricePerShare = await vault.getPricePerFullShare();
     console.log("pricePerShare: ", toEther(pricePerShare));
     // const user = '0xC627D743B1BfF30f853AE218396e6d47a4f34ceA';
