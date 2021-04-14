@@ -49,7 +49,7 @@ async function deploy() {
     console.log(`Deployed Vault... (${vault.address})`);
     const strategyFactory: WaultWbnbVenusStrategy__factory = new WaultWbnbVenusStrategy__factory(deployer);
     let strategy: WaultWbnbVenusStrategy = strategyFactory.attach(strategyAddress).connect(deployer);
-    if ("redeploy" && true) {
+    if ("redeploy" && false) {
         strategy = await strategyFactory.deploy(vault.address);
     }
     console.log(`Deployed Strategy... (${strategy.address})`);

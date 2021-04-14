@@ -52,7 +52,7 @@ contract WaultWbnbVenusStrategy is Ownable, ReentrancyGuard, Pausable {
 
     address[] public venusToWantPath;
 
-    uint256 public performanceFee = 300;
+    uint256 public performanceFee = 200;
     uint256 public treasuryReward = 50;
     uint256 public withdrawalFee = 0;
     uint256 public harvesterReward = 50;
@@ -99,8 +99,6 @@ contract WaultWbnbVenusStrategy is Ownable, ReentrancyGuard, Pausable {
         }
 
         venusMarkets = [vTokenAddress];
-
-        // transferOwnership(vault);
 
         _resetAllowances();
 
@@ -352,13 +350,6 @@ contract WaultWbnbVenusStrategy is Ownable, ReentrancyGuard, Pausable {
 
         earnedAmt = IERC20(venusAddress).balanceOf(address(this));
 
-        // IUniswapRouter(uniRouterAddress).swapExactTokensForTokens(
-        //     earnedAmt,
-        //     0,
-        //     venusToWantPath,
-        //     address(this),
-        //     block.timestamp.add(600)
-        // );
         _safeSwap(
             uniRouterAddress,
             earnedAmt,
